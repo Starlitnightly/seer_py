@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 
 
@@ -26,7 +27,10 @@ def seer_damage(level,skill,attack,defend,attr,same=True):
     #等级系数
     factor_level=(level*0.4+2)/50
     #攻防系数
-    factor_att=attack/defend
+    if(defend==0):
+        return 0
+    else:
+        factor_att=attack/defend
     #随即系数
     factor_random=(random.randint(217,255))/255
     #属性系数
@@ -35,7 +39,9 @@ def seer_damage(level,skill,attack,defend,attr,same=True):
     else:
         factor_attr=1.5*attr
     #计算伤害
-    return (factor_level*skill*factor_att+2)*factor_random*factor_attr
+    da=(factor_level*skill*factor_att+2)*factor_random*factor_attr
+
+    return da
 
 def seer_counter_single(monster1_attr,monster2_attr):
     '''
@@ -252,13 +258,14 @@ class Seer_combat(object):
         self.monster2=monster2
 
     def print_state(self):
-        print('精灵1当前状态:\n','体力:',self.monster1['基础']['life'],'\n强化等级:',self.monster1['强化等级'])
+        #print(self.monster1)
+        print('精灵1当前状态:\n','体力:{0}/{1}'.format(self.monster1['基础']['life'],self.monster1['基础']['life_max']),'\n强化等级:',self.monster1['强化等级'])
         print('skill_1:',self.monster1['技能']['skill_1']['s_pp'],'/',self.monster1['技能']['skill_1']['s_pp_max'])
         print('skill_2:',self.monster1['技能']['skill_2']['s_pp'],'/',self.monster1['技能']['skill_2']['s_pp_max'])
         print('skill_3:',self.monster1['技能']['skill_3']['s_pp'],'/',self.monster1['技能']['skill_3']['s_pp_max'])
         print('skill_4:',self.monster1['技能']['skill_4']['s_pp'],'/',self.monster1['技能']['skill_4']['s_pp_max'])
         
-        print('精灵2当前状态:\n','体力:',self.monster2['基础']['life'],'\n强化等级:',self.monster2['强化等级'])
+        print('精灵2当前状态:\n','体力:{0}/{1}'.format(self.monster2['基础']['life'],self.monster2['基础']['life_max']),'\n强化等级:',self.monster2['强化等级'])
         print('skill_1:',self.monster2['技能']['skill_1']['s_pp'],'/',self.monster2['技能']['skill_1']['s_pp_max'])
         print('skill_2:',self.monster2['技能']['skill_2']['s_pp'],'/',self.monster2['技能']['skill_2']['s_pp_max'])
         print('skill_3:',self.monster2['技能']['skill_3']['s_pp'],'/',self.monster2['技能']['skill_3']['s_pp_max'])
@@ -278,50 +285,89 @@ class Seer_combat(object):
             monster2=self.monster1
 
 
+
         level=monster1['基础']['level']
         skill=monster1['技能'][skill_t]
+
+        if(skill_t=='skill_pp'):
+            self.monster['技能']['skill_1']['s_pp']=self.monster['技能']['skill_1']['s_pp_max']
+            self.monster['技能']['skill_2']['s_pp']=self.monster['技能']['skill_2']['s_pp_max']
+            self.monster['技能']['skill_3']['s_pp']=self.monster['技能']['skill_3']['s_pp_max']
+            self.monster['技能']['skill_4']['s_pp']=self.monster['技能']['skill_4']['s_pp_max']
+            return('回复了pp\n')
+        elif(skill_t=='skill_hp'):
+            monster1['基础']['life']+=200
+            return('回复了血量\n')
+
+
+
         reforce1=monster1['强化等级']
         reforce2=monster2['强化等级']
         #计算attack
         if(skill['s_type']=='物理'):
             if(reforce1['r_ap']>0):
                 factor1=0.5
+                attack=monster1['基础']['attack_p']*(1+factor1*reforce1['r_ap'])
             else:
-                factor1=0.25
-            attack=monster1['基础']['attack_p']*(1+factor1*reforce1['r_ap'])
+                factor1=0.75
+                attack=monster1['基础']['attack_p']*(np.power(factor1,0-reforce1['r_ap']))
         elif(skill['s_type']=='特殊'):
             if(reforce1['r_as']>0):
                 factor1=0.5
+                attack=monster1['基础']['attack_s']*(1+factor1*reforce1['r_as'])
             else:
-                factor1=0.25
-            attack=monster1['基础']['attack_s']*(1+factor1*reforce1['r_as'])
+                factor1=0.75
+                attack=monster1['基础']['attack_s']*(np.power(factor1,0-reforce1['r_as']))
+                #print(factor1,reforce1['r_as'],attack)
         else:
             attack=0
         #计算defend
         if(skill['s_type']=='物理'):
             if(reforce2['r_dp']>0):
                 factor2=0.5
+                defend=monster2['基础']['defend_p']*(1+factor2*reforce2['r_dp'])
             else:
-                factor2=0.25
-            defend=monster2['基础']['attack_p']*(1+factor2*reforce2['r_dp'])
+                factor2=0.75
+                defend=monster2['基础']['defend_p']*(np.power(factor2,reforce2['r_dp']))
         elif(skill['s_type']=='特殊'):
             if(reforce2['r_ds']>0):
                 factor2=0.5
+                defend=monster2['基础']['defend_s']*(1+factor2*reforce2['r_ds'])
             else:
-                factor2=0.25
-            defend=monster2['基础']['attack_s']*(1+factor2*reforce2['r_ds'])
+                factor2=0.75
+                defend=monster2['基础']['defend_s']*(np.power(factor2,reforce2['r_ds']))
         else:
             defend=0
         #计算属性系数
-        factor_attr=seer_counter(monster1['基础']['attr'],\
+        print(skill['s_attr'],\
+                                monster2['基础']['attr'])
+        factor_attr=seer_counter(skill['s_attr'],\
                                 monster2['基础']['attr'])
 
+        #计算是否致命一击
+        h=int(cal_skill_effect_pr(monster1['基础']['heart']*100))
+        if(h):
+            heart=2
+        else:
+            heart=1
+
+        #判断是否是本系技能
+        if(skill['s_attr']==monster1['基础']['attr']):
+            same=True
+        else:
+            same=False
+
+        #计算攻击次数
+        tim=random.randint(skill['s_times'][0],skill['s_times'][1])
+        s_d=skill['s_damage']*tim
+
         #计算造成伤害
-        damage=int(seer_damage(level,\
-                    skill['s_damage'],\
+        damage=(seer_damage(level,\
+                    s_d,\
                     attack,\
                     defend,\
-                    factor_attr))
+                    factor_attr,same))
+        damage=int(damage)*heart
 
         #计算技能命中概率
         hit_flag=False#技能命中标志
@@ -343,156 +389,106 @@ class Seer_combat(object):
             skill['s_name'],\
             damage))
 
+        
 
         #结算技能效果
         s_effect=skill['s_effect']
+        n_effect=''
         for i in s_effect.keys():
             if(i=='回复'):
                 if(int(cal_skill_effect_pr(s_effect[i]['Pr']*100))):
-                    monster1['基础']['life']+=s_effect[i]['h[p]']*monster2['基础']['life']
+                    n_effect='生命值得到了回复'
+                    now_life=monster1['基础']['life']
+                    l=now_life+s_effect[i]['hp']*monster1['基础']['life_max']
+                    if(l>monster1['基础']['life_max']):
+                        monster1['基础']['life']=monster1['基础']['life_max']
+                    else:
+                        monster1['基础']['life']=l
+            elif(i=='吸血'):
+                if(int(cal_skill_effect_pr(s_effect[i]['Pr']*100))):
+                    ex_life=damage*s_effect[i]['hp']
+                    monster1['基础']['life']+=ex_life
+                    if(monster1['基础']['life']>monster1['基础']['life_max']):
+                        monster1['基础']['life']=monster1['基础']['life_max']
+                    n_effect='造成对手伤害的{}回复了自身的血量'.format(ex_life)
+
+            elif(i=='秒杀'):
+                if(int(cal_skill_effect_pr(s_effect[i]['Pr']*100))):
+                    n_effect='触发了秒杀效果'
+                    if(s_effect[i]['type']=='self'):
+                        monster1['基础']['life']=0
+                    else:
+                        monster2['基础']['life']=0
+            elif(i=='反弹'):
+                if(int(cal_skill_effect_pr(s_effect[i]['Pr']*100))):
+                    monster2['基础']['life']+=(monster1['基础']['life']-monster1['基础']['now_life'])*2
+                    n_effect='反弹了{0}伤害'.format((monster1['基础']['life']-monster1['基础']['now_life'])*2)
+
+                    
             elif(i=='能力下降'):
                 if(int(cal_skill_effect_pr(s_effect[i]['Pr']*100))):
+                    n_effect='能力下降了'
                     if(s_effect[i]['type']=='self'):
                         for j in s_effect[i]['下降内容'].keys():
                             monster1['强化等级'][j]+=s_effect[i]['下降内容'][j]
                     else:
                         for j in s_effect[i]['下降内容'].keys():
                             monster2['强化等级'][j]+=s_effect[i]['下降内容'][j]
+            elif(i=='能力上升'):
+                if(int(cal_skill_effect_pr(s_effect[i]['Pr']*100))):
+                    n_effect='能力上升了'
+                    if(s_effect[i]['type']=='self'):
+                        for j in s_effect[i]['上升内容'].keys():
+                            monster1['强化等级'][j]+=s_effect[i]['上升内容'][j]
+                    else:
+                        for j in s_effect[i]['上升内容'].keys():
+                            monster2['强化等级'][j]+=s_effect[i]['上升内容'][j]
+
+            elif(i=='致命几率'):
+                if(int(cal_skill_effect_pr(s_effect[i]['Pr']*100))):
+                    n_effect='致命几率上升了'
+                    if(s_effect[i]['type']=='self'):
+                        monster1['回合类标记']['致命几率']['Isopen']=True
+                        monster1['回合类标记']['致命几率']['content']+=s_effect[i]['content']
+                        monster1['回合类标记']['致命几率']['round']+=s_effect[i]['round']
+                    else:
+                        monster2['回合类标记']['致命几率']['Isopen']=True
+                        monster2['回合类标记']['致命几率']['content']+=s_effect[i]['content']
+                        monster2['回合类标记']['致命几率']['round']+=s_effect[i]['round']
+
+            elif(i=='叠加伤害'):
+                if(int(cal_skill_effect_pr(s_effect[i]['Pr']*100))):
+                    monster1['回合类标记']['叠加伤害']['Isopen']=True
+                    monster1['回合类标记']['叠加伤害']['skill']=skill['s_name']
+                    monster1['回合类标记']['叠加伤害']['content']+=s_effect[i]['content']
+                    monster1['回合类标记']['叠加伤害']['round']+=s_effect[i]['round']
+
+        if(h):
+            return('致命一击：{0}对{1}使用了{2}造成了{3}点伤害\n{4}'.format(\
+            monster1['基础']['name'],\
+            monster2['基础']['name'],\
+            skill['s_name'],\
+            damage,n_effect+'\n'))
+        else:
+            return('{0}对{1}使用了{2}造成了{3}点伤害\n{4}'.format(\
+            monster1['基础']['name'],\
+            monster2['基础']['name'],\
+            skill['s_name'],\
+            damage,n_effect+'\n'))
 
 
 
 
-布布花={
-    '基础':{
-    'name':'布布花',
-    'level':100,
-    'life':331,
-    'attack_p':254,
-    'defend_p':246,
-    'attack_s':186,
-    'defend_s':206,
-    'speed':148,
-    'attr':['草'],
-    'state':1},
 
-    '强化等级':{
-    'r_hit':0,
-    'r_ap':0,
-    'r_dp':0,
-    'r_as':0,
-    'r_ds':0,
-    'r_s':0,
-    },
 
-    '技能':{'skill_1':{
-            's_name':'光合作用',
-            's_hit':101,
-            's_type':'属性',
-            's_damage':0,
-            's_effect':{'回复':{'hp':0.5,'Pr':1}},
-            's_pp_max':5,
-            's_pp':5,
-    },
-    'skill_2':{
-            's_name':'咬碎',
-            's_hit':100,
-            's_type':'物理',
-            's_damage':100,
-            's_effect':{'能力下降':{'type':'self','下降内容':{'r_dp':-2},'Pr':0.15}},
-            's_pp_max':15,
-            's_pp':15,
-    },
-    'skill_3':{
-            's_name':'超级吸取',
-            's_hit':101,
-            's_type':'特殊',
-            's_damage':60,
-            's_effect':{'吸血':{'hp':0.5,'Pr':1}},
-            's_pp_max':10,
-            's_pp':10,
-    },
-    'skill_4':{
-            's_name':'飞叶风暴',
-            's_hit':101,
-            's_type':'特殊',
-            's_damage':140,
-            's_effect':{'能力下降':{'type':'self','下降内容':{'r_as':-1},'Pr':1}},
-            's_pp_max':5,
-            's_pp':5,
-    }
 
-    }
-}
-
-布布花2={
-    '基础':{
-    'name':'布布花',
-    'level':100,
-    'life':331,
-    'attack_p':254,
-    'defend_p':246,
-    'attack_s':186,
-    'defend_s':206,
-    'speed':148,
-    'attr':['草'],
-    'state':1},
-
-    '强化等级':{
-    'r_hit':0,
-    'r_ap':0,
-    'r_dp':0,
-    'r_as':0,
-    'r_ds':0,
-    'r_s':0,
-    },
-
-    '技能':{'skill_1':{
-            's_name':'光合作用',
-            's_hit':101,
-            's_type':'属性',
-            's_damage':0,
-            's_effect':{'回复':{'hp':0.5,'Pr':1}},
-            's_pp_max':5,
-            's_pp':5,
-    },
-    'skill_2':{
-            's_name':'咬碎',
-            's_hit':100,
-            's_type':'物理',
-            's_damage':100,
-            's_effect':{'能力下降':{'type':'self','下降内容':{'r_dp':-2},'Pr':0.15}},
-            's_pp_max':15,
-            's_pp':15,
-    },
-    'skill_3':{
-            's_name':'超级吸取',
-            's_hit':101,
-            's_type':'特殊',
-            's_damage':60,
-            's_effect':{'吸血':{'hp':0.5,'Pr':1}},
-            's_pp_max':10,
-            's_pp':10,
-    },
-    'skill_4':{
-            's_name':'飞叶风暴',
-            's_hit':101,
-            's_type':'特殊',
-            's_damage':140,
-            's_effect':{'能力下降':{'type':'self','下降内容':{'r_as':-1},'Pr':1}},
-            's_pp_max':5,
-            's_pp':5,
-    }
-
-    }
-}
 
 mon1={'level':100,'skill':160,'attack':500,'defend':300,'attr':['圣灵']}
 mon2={'level':100,'skill':160,'attack':500,'defend':300,'attr':['圣灵']}
-com=Seer_combat(布布花,布布花2)
-com.print_state()
-com.monster_skill('skill_2',1)
-com.monster_skill('skill_4',2)
-com.print_state()
-com.monster_skill('skill_2',1)
-com.monster_skill('skill_4',2)
-com.print_state()
+
+
+
+
+#com=Seer_combat(布布花,布布花2)
+
+
