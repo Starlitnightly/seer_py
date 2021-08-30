@@ -1,6 +1,6 @@
 # coding:utf-8
 
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QApplication
 from PyQt5.QtGui import QMouseEvent, QScreen, QGuiApplication, QDesktopServices
 from PyQt5.QtCore import Qt, QProcess, QMetaType, QVariant, pyqtSignal, QJsonDocument, QUrl, QSettings
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
@@ -48,6 +48,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
 
     def __init__(self):
         super().__init__()
+
         
         gl.bind_status=False
         gl.currentpath=os.getcwd()
@@ -103,7 +104,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self.action_22.triggered.connect(self.slot_author)
 
         #一键换装备信号
-        '''
+        
         self.bag_sk.triggered.connect(self.Changebag_sk)
         self.bag_fs.triggered.connect(self.Changebag_fs)
         self.bag_ld.triggered.connect(self.Changebag_ld)
@@ -116,7 +117,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self.bag_yy.triggered.connect(self.Changebag_yy)
         self.bag_tq.triggered.connect(self.Changebag_tq)
         self.bag_yh.triggered.connect(self.Changebag_yh)
-        '''
+        
 
         #一键换精灵
         self.actionyijian.triggered.connect(self.show_csp)
@@ -361,4 +362,163 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         if(gl.bind_status==False):
             self.Binddm()
 
+    def Changebag(self,name):
+        gl.Delay(100)
+        #执行自动确认
+        tmp=changesp.ffAutoC()
+        tmp.status=True
+        tmp.start()
+        #鼠标移动到582，487后左键点击
+        gl.dm.MoveTo(582,487)
+        gl.dm.LeftClick()
+        #打开背包
+        self.Openbag()
+        #搜索装备
+        self.Searchbag(gl.pid,name)
+        #穿上装备
+        self.Wearbag()
+        tmp.status=False
+        gl.Delay(1000)
+        tmp=0
 
+    def Openbag(self):
+        pos={}
+        while(gl.FindPic(18,11,526,316,"查看个人信息.bmp","000000",0.8,0,pos)==-1):
+            gl.dm.MoveTo(670,293)
+            gl.dm.LeftClick()
+            QApplication.processEvents()
+            gl.Delay(500)
+
+    def Searchbag(self,pid,name):
+        gl.dm.MoveTo(736,382)
+        gl.dm.LeftClick()
+        for i in [ord(c) for c in name]:
+            win32api.PostMessage(gl.pid, 258, i, 0)
+        gl.Delay(500)
+        gl.dm.MoveTo(797,380)
+        gl.dm.LeftClick()
+
+    def Wearbag(self):
+        pos={}
+        while(gl.FindPic(0,0,1000,600,"装备选完.bmp","000000",0.8,0,pos)==-1):
+            gl.dm.MoveTo(202,445)
+            gl.dm.LeftClick()
+            QApplication.processEvents()
+            gl.Delay(100)
+            print('装备选择中')
+        print('装备选完')
+        gl.dm.MoveTo(357,314)
+        gl.dm.LeftClick()
+        gl.Delay(100)
+
+    def Changebag_sk(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag('时空')
+        self.sendtip.emit('精灵阵容已截图完毕')
+
+    def Changebag_fs(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("腐蚀者")
+        self.sendtip.emit("一键更换腐蚀者成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-零度
+     * @return 无
+    '''
+    def Changebag_ld(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("零度")
+        self.sendtip.emit("一键更换零度成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-皇帝
+     * @return 无
+    '''
+    def Changebag_hd(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("皇帝")
+        self.sendtip.emit("一键更换皇帝成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-毒液
+     * @return 无
+    '''
+    def Changebag_dy(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("毒液")
+        self.sendtip.emit("一键更换毒液成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-笑傲
+     * @return 无
+    '''
+    def Changebag_xa(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("笑傲")
+        self.sendtip.emit("一键更换笑傲成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-未来
+     * @return 无
+    '''
+    def Changebag_wl(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("未来")
+        self.sendtip.emit("一键更换未来成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-元神
+     * @return 无
+    '''
+    def Changebag_ys(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("元神")
+        self.sendtip.emit("一键更换元神成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-天尊
+     * @return 无
+    '''
+    def Changebag_tz(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("天尊")
+        self.sendtip.emit("一键更换天尊成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-银翼骑士
+     * @return 无
+    '''
+    def Changebag_yy(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("银翼骑士")
+        self.sendtip.emit("一键更换银翼成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-天启
+     * @return 无
+    '''
+    def Changebag_tq(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("天启")
+        self.sendtip.emit("一键更换天启成功啦，快看看换好的套装吧")
+
+    '''
+     * @brief 一键换装备-浴火
+     * @return 无
+    '''
+    def Changebag_yh(self):
+        if(gl.bind_status==False):
+            self.Binddm()
+        self.Changebag("浴火")
+        self.sendtip.emit("一键更换浴火成功啦，快看看换好的套装吧")

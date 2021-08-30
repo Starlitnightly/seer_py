@@ -309,3 +309,127 @@
 
     }
 }
+
+
+弑神猎皇={
+    '基础':{
+    'name':'弑神猎皇',
+    'level':100,
+    'life':924,
+    'life_max':924,
+    'attack_p':158,
+    'defend_p':248,
+    'attack_s':400,
+    'defend_s':242,
+    'speed':294,
+    'attr':['战斗','龙'],
+    'state':1,    
+    'heart':1/16,
+    'heart_normal':1/16},
+
+    '强化等级':{
+    'r_hit':0,
+    'r_ap':0,
+    'r_dp':0,
+    'r_as':0,
+    'r_ds':0,
+    'r_s':0,
+    },
+    '回合类标记':{
+    '致命几率':{'Isopen':False,'content':0,'round':0},
+    '叠加伤害':{'Isopen':False,'content':0,'name':'','round':0},
+    },
+
+    '技能':{'skill_1':{
+            's_name':'扩散光雨',
+            's_attr':['战斗','龙'],
+            's_hit':101,
+            's_type':'特攻',
+            's_damage':5,
+            's_damage_raw':5,
+            's_effect':{
+            '消除强化':{
+                'type':'oppo',
+                'success':{'伤害提高':{'type':'self','round':1,'content':'1','Pr':1}},
+                'failed':{},
+                'Pr':1}
+                },
+            's_pp_max':20,
+            's_pp':20,
+            's_early':3,#先制
+            's_times':[10,25],
+    },
+    'skill_2':{
+            's_name':'暗猎惊魂',
+            's_attr':['普通'],
+            's_hit':100,
+            's_type':'属性',
+            's_damage':0,
+            's_damage_raw':0,
+            's_effect':{
+                '免控':{'kind':'回合类','type':'self','round':4,'Pr':1},
+                '弹控':{'kind':'回合类','type':'oppe','round':4,'Pr':1},
+                '抗能力下降':{'kind':'回合类','type':'self','round':4,'Pr':1},
+                '控场':{'type':'oppo','content':'害怕','Pr':0.8,
+                        'success':{},
+                        'failed':{'免疫伤害':{'kind':'次数类','type':'self','times':1,'Pr':1},
+                                    '反弹伤害'{'kind':'次数类','type':'self','times':1,'Pr':1}}}},
+            's_pp_max':5,
+            's_pp':5,
+            's_early':0,#先制68
+            's_times':[1,1],
+
+    },
+    'skill_3':{
+            's_name':'剑舞',
+            's_attr':['普通'],
+            's_hit':101,
+            's_type':'属性',
+            's_damage':0,
+            's_damage_raw':0,
+            's_effect':{'能力上升':{'type':'self','上升内容':{'r_ap':2},'Pr':1}},
+            's_pp_max':15,
+            's_pp':15,
+            's_early':0,#先制
+            's_times':[1,1],
+    },
+    'skill_4':{
+            's_name':'湍流龙击打',
+            's_attr':['水'],
+            's_hit':101,
+            's_type':'物理',
+            's_damage':150,
+            's_damage_raw':150,
+            's_effect':{'叠加伤害':{'type':'self','round':1,'content':20,'Pr':1}},
+            's_pp_max':5,
+            's_pp':5,
+            's_early':0,#先制
+            's_times':[1,1],
+    },
+    'skill_hp':{
+        's_name':'hp',
+        's_early':0,#先制
+        's_attr':['普通'],
+        's_hit':101,
+        's_type':'属性',
+        's_damage':0,
+        's_damage_raw':0,
+        's_effect':{},
+        's_pp_max':10,
+        's_pp':10,
+    },
+    'skill_pp':{
+        's_name':'pp',
+        's_early':0,#先制
+        's_attr':['普通'],
+        's_hit':101,
+        's_type':'属性',
+        's_damage':0,
+        's_damage_raw':0,
+        's_effect':{},
+        's_pp_max':10,
+        's_pp':10,
+    }
+
+    }
+}

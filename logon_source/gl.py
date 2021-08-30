@@ -14,7 +14,7 @@ def __init__():
     #pid
     global pid
 
-def Delay(time):
+def Delay(time=100):
     loop=QEventLoop()
     QTimer.singleShot(time,loop.quit)
     loop.exec()

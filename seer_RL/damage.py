@@ -359,15 +359,15 @@ class Seer_combat(object):
 
         #计算攻击次数
         tim=random.randint(skill['s_times'][0],skill['s_times'][1])
-        s_d=skill['s_damage']*tim
+
 
         #计算造成伤害
         damage=(seer_damage(level,\
-                    s_d,\
+                    skill['s_damage'],\
                     attack,\
                     defend,\
                     factor_attr,same))
-        damage=int(damage)*heart
+        damage=int(damage)*heart*tim
 
         #计算技能命中概率
         hit_flag=False#技能命中标志

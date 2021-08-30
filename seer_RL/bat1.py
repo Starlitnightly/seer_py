@@ -38,10 +38,10 @@ class mainwindow():
 
         self.com=damage.Seer_combat(self.monster1,self.monster2)
 
-        self.bat1=Bat1(self.monster1,1,self.com)
+        self.bat1=Bat1(self.monster1,1,self.com,'房主')
         self.bat1.show()
         self.bat1.move(200,50)
-        self.bat2=Bat1(self.monster2,2,self.com)
+        self.bat2=Bat1(self.monster2,2,self.com,'挑战者')
         self.bat2.show()
         self.bat2.move(800,50)
 
@@ -94,7 +94,7 @@ class mainwindow():
     def on(self):
         self.flag = 1
         print("线程开启")
-        self.info='round:1\n'
+        self.info='战斗开始\n'
         self.label.setText(self.info)
         self.round=1
         self.nowround=1
@@ -103,10 +103,15 @@ class mainwindow():
         for i in self.monster1['强化等级'].keys():
             self.monster1['强化等级'][i],self.monster2['强化等级'][i]=0,0
         self.bat1.skill_isuse,self.bat2.skill_isuse=False,False
+        self.bat1.drug_isuse, self.bat2.drug_isuse=False,False
+        self.bat1.spirit_isuse, self.bat2.spirit_isuse=False,False
 
         for i in self.monster1['技能'].keys():
-            self.monster1['技能'][i]['s_damage']=self.monster1['技能'][i]['s_damage_raw']
-            self.monster1['技能'][i]['s_pp']=self.monster1['技能'][i]['s_pp_max']
+            self.monster1['技能'][i]['s_damage'],self.monster2['技能'][i]['s_damage']=self.monster1['技能'][i]['s_damage_raw'],self.monster2['技能'][i]['s_damage_raw']
+            self.monster1['技能'][i]['s_pp'],self.monster2['技能'][i]['s_pp']=self.monster1['技能'][i]['s_pp_max'],self.monster2['技能'][i]['s_pp_max']
+
+        for i in self.monster1['回合类标记'].keys():
+            self.monster1['回合类标记'][i]['round'],self.monster2['回合类标记'][i]['round']=0,0
         self.bat1.fresh(self.monster1)
         self.bat2.fresh(self.monster2)
 
@@ -115,11 +120,59 @@ class mainwindow():
             if self.flag == 1:
                 #self.bat1.fresh(self.monster1)
                 #self.bat2.fresh(self.monster2)
+                #if(self.round!=self.nowround):
+                    #操作阶段：技能选择、精灵选择、药剂选择
 
-                if(self.round!=self.nowround):
-                    #回合开始
+
+                    #前回合阶段：大多数登场效果发动的阶段
+
+                    #回合开始阶段：大多数回合开始时效果发动的阶段
+
+                    #战斗阶段：双方进行技能交互的阶段
+
+                    #回合结束阶段1：大多数专属特性所提及的回合结束
+
+                    #回合结束阶段2：大多数技能所提及的回合结束、或者未击败效果
+
+                    #后回合阶段：用于击败与被击败判定的阶段
+
+                    #操作阶段
+                    
+
+                if((self.bat1.skill_isuse==True or self.bat1.drug_isuse==True or self.bat1.spirit_isuse==True) and \
+                    (self.bat2.skill_isuse==True or self.bat2.drug_isuse==True or self.bat2.spirit_isuse==True)):
                     self.info=self.info+'round:{0}\n'.format(self.nowround)
                     self.label.setText(self.info)
+                    print('双方都完成了操作')
+                    #前回合阶段
+                    if(self.bat1.id=='房主'):
+                        #结算bat1的特性
+                        
+
+                        #结算bat2的特性
+                        pass
+                    else:
+                        #结算bat2的特性
+
+                        #结算bat1的特性
+                        pass
+
+                    #回合开始阶段
+
+                    if(self.bat1.id=='房主'):
+                        #结算bat1的特性
+                        
+
+                        #结算bat2的特性
+                        pass
+                    else:
+                        #结算bat2的特性
+
+                        #结算bat1的特性
+                        pass
+
+                    #战斗阶段
+
                     #依次结算回合类效果，速度快的优先
                     if(self.monster1['基础']['speed']>self.monster2['基础']['speed']):
                         for i in self.monster1['回合类标记'].keys():
@@ -170,10 +223,6 @@ class mainwindow():
                     self.bat1.fresh(self.monster1)
                     self.bat2.fresh(self.monster2)
 
-                    self.round+=1                
-                
-
-                if(self.bat1.skill_isuse==True and self.bat2.skill_isuse==True):
                     print('双方都释放技能了')
                     info1,info2='',''
                     skill1,skill2='skill_{}'.format(self.bat1.skill_num),'skill_{}'.format(self.bat2.skill_num)
@@ -251,10 +300,14 @@ class mainwindow():
                     #回合结束
                     self.nowround+=1
                     self.bat1.skill_isuse,self.bat2.skill_isuse=False,False
+            
+
+                    
 
             else:
                 break
         print("暂停成功！")
+        self.flag = 0
 
 
     def off(self):
@@ -266,7 +319,7 @@ class mainwindow():
 
 
 class Bat1(QMainWindow, ui_bat1.Ui_MainWindow):
-    def __init__(self,monster,num,com):
+    def __init__(self,monster,num,com,id1):
         super().__init__()
         self.setupUi(self)
         self.setAttribute(Qt.WA_QuitOnClose,False)
@@ -275,6 +328,8 @@ class Bat1(QMainWindow, ui_bat1.Ui_MainWindow):
         self.num=num
         self.info=''
         self.monster=monster
+
+        self.id=id1
 
         self.pushButton.clicked.connect(self.skill1_use)
         self.pushButton_2.clicked.connect(self.skill2_use)

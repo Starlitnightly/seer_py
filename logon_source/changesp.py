@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QMainWindow, QDirModel, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QDirModel, QFileDialog, QMessageBox, QApplication
 from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtCore import Qt, QLibrary, QTextStream,QIODevice, QFile
+from PyQt5.QtCore import Qt, QLibrary, QTextStream,QIODevice, QFile, QThread
 
 from ctypes import *
 import numpy as np
@@ -20,6 +20,27 @@ def change_sp(tmp,url):
     deletesp(tmp)
     tmp.setControl("{8856F961-340A-11D0-A96B-00C04FD705A2}")
     tmp.dynamicCall("Navigate(QString)",url)
+
+class ffAutoC(QThread):
+    status=False
+    def __init__(self):
+        super().__init__()
+        self.status=False
+    def run(self):
+        pos={}
+        while(self.status==True):
+            if(gl.FindPic(406, 322, 562, 402,"放入背包确认.bmp","000000",0.8,0,pos)!=-1):
+                gl.dm.MoveTo(pos['x'],pos['y'])
+                gl.dm.LeftClick()
+            if(gl.FindPic(400, 200, 600, 300, "数据非法.bmp","000000",0.8,0,pos)!=-1):
+                gl.dm.MoveTo(pos['x'],pos['y'])
+                gl.dm.LeftClick()
+            if(gl.FindPic(0,0,1000,600,"消息盒子x.bmp","000000",0.8,0,pos)!=-1):
+                gl.dm.MoveTo(pos['x'],pos['y'])
+                gl.dm.LeftClick()    
+            gl.Delay(1000)
+            
+
 
 class Changesp(QMainWindow, ui_changesp.Ui_Changesp):
     def __init__(self):
@@ -107,6 +128,7 @@ class Changesp(QMainWindow, ui_changesp.Ui_Changesp):
             gl.dm.LeftClick()
             if(gl.FindPic(0,0,1000,600,"识别仓库.bmp|识别仓库2.bmp","000000",0.8,0,pos)!=-1):
                 break
+            QApplication.processEvents()
             gl.Delay(500)
 
     def Opensp_home(self):
@@ -114,7 +136,9 @@ class Changesp(QMainWindow, ui_changesp.Ui_Changesp):
         while(gl.FindPic(0,0,1000,600,"识别仓库.bmp|识别仓库2.bmp","000000",0.8,0,pos)==-1):
             gl.dm.MoveTo(849,470)
             gl.dm.LeftClick()
+            QApplication.processEvents()
             gl.Delay(500)
+
 
     def Searchsp(self,pid,name):
         pos={}
@@ -128,6 +152,7 @@ class Changesp(QMainWindow, ui_changesp.Ui_Changesp):
             gl.dm.MoveTo(925,108)
             gl.dm.LeftClick()
             gl.Delay(100)
+            QApplication.processEvents()
 
     def Putsp_bag(self):
         for i in range(5):
@@ -141,8 +166,30 @@ class Changesp(QMainWindow, ui_changesp.Ui_Changesp):
             gl.Delay(100)
 
     def slot_auto_bag(self):
-        gl.dm.MoveTo(515,150)
-        gl.dm.LeftDown()
-        gl.dm.MoveTo(520,150)
-        for i in [ord(c) for c in 'name']:
-            win32api.PostMessage(gl.pid, 258, i, 0)
+        gl.Delay(100)
+        tmp=ffAutoC()
+        tmp.status=True
+        tmp.start()
+        self.Putsp_home()
+        self.Opensp_home()
+        tmpl=self.textEdit.toPlainText()
+        sections=tmpl.split('|')
+        self.bag=[]
+        for i in range(len(sections)):
+            self.bag.append(sections[i])
+            QApplication.processEvents()
+        for i in range(len(self.bag)):
+            self.Searchsp(gl.pid,self.bag[i])
+            QApplication.processEvents()
+            self.Putsp_bag()
+            QApplication.processEvents()
+            gl.Delay(200)
+        tmp.status=False
+        QApplication.processEvents()
+        tmp=0
+        print('success bag')
+        #gl.dm.MoveTo(515,150)
+        #gl.dm.LeftDown()
+        #gl.dm.MoveTo(520,150)
+        #for i in [ord(c) for c in 'name']:
+        #    win32api.PostMessage(gl.pid, 258, i, 0)
